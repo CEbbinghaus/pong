@@ -1,0 +1,11 @@
+*{
+  margin: 0px;
+  padding: 0px;
+}
+canvas{
+  background: linear-gradient(90deg, #f00, #00f);
+}
+
+::-webkit-scrollbar{
+  display: none;
+}

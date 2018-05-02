@@ -11,6 +11,10 @@ class Ball{
   draw(ctx){
     ctx.beginPath();
     ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+    ctx.shadowColor = "#0003"
+    ctx.shadowBlur = 30;
+    ctx.shadowOffsetX = 10;
+    ctx.shadowOffsetY = 10;
     ctx.fill();
   }
 

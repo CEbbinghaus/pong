@@ -2,7 +2,8 @@ var canvas = document.getElementById("gameCanvas");
 var context = canvas.getContext("2d");
 /////////////////////////////////////////////////////////////////////////////////
 window.addEventListener("keydown", function(evt) {onKeyDown(event);}, false); 
-window.addEventListener("keyup", function(evt) {onKeyUp(event);}, false); 
+window.addEventListener("keyup", function(evt) {onKeyUp(event);}, false);
+canvas.addEventListener("touchmove", onTouch)
 window.addEventListener("resize", () => {canvas.width = innerWidth; canvas.height = innerHeight;})
 window.addEventListener("DOMContentLoaded", function(evt) {onLoad(evt);}, false);
 ///////////////////////////////////////////////////////////////////////////////////
@@ -63,6 +64,18 @@ function onKeyUp(event)
 {
     keymap[event.keyCode] = false;
 }
+
+function onTouch(event){
+    event.preventDefault()
+    let a = [];
+    for(let k in event.touches){
+        a.push(event.touches[k])
+    }
+    let l = a.filter(v => v.clientX < innerWidth / 8)
+    let r = a.filter(v => v.clientX > innerWidth - innerWidth / 8)
+    if(l.length)Player1.vy = (l[0].clientY - Player1.height / 2) - Player1.y;
+    if(r.length)Player2.vy = (r[0].clientY - Player2.height / 2) - Player2.y;
+}
 //-------------------------------------------------------------------Collisions
 function IsColliding(p1, p2)
 {
@@ -108,7 +121,10 @@ function BallUpdate(dt){
 function BallBox()
 {
     if(ball.vy > 100)ball.vy = 100;
-    if (ball.y - ball.r <= 0 || ball.y >= canvas.height - ball.r){
+    if (ball.y - ball.r <= 0  && ball.vy < 0){
+        ball.vy = -ball.vy;
+        ball.vx *= 1.01
+    }else if(ball.y >= canvas.height - ball.r && ball.vy > 0){
         ball.vy = -ball.vy;
         ball.vx *= 1.01
     }
@@ -135,20 +151,26 @@ function P1Movement()
 {
     if (keymap[KeyW] == true)
     {
+        if(Player1.y == 0)return;
         Player1.vy = -speed
     }
     if (keymap[KeyS] == true)
     {
+        if(Player1.y == innerHeight - Player1.height)return;
         Player1.vy = speed;
     }
 }
 function P1Box()
 {
-    if (Player1.y <= 0)
-    Player1.y = 0
+    if (Player1.y < 0){
+        Player1.y = 0;
+        Player1.vy = 0;
+    }
 
-    if (Player1.y + Player1.height >= canvas.height)
-    Player1.y = canvas.height - Player1.height
+    if (Player1.y + Player1.height > canvas.height){
+        Player1.y = canvas.height - Player1.height
+        Player1.vy = 0;
+    }
 
     if (Player1.x != 0)
     Player1.x = 0
@@ -158,20 +180,26 @@ function P2Movement()
 {
     if (keymap[Keyup] == true)
     {
-        Player2.vy = -speed;
+        if(Player2.y == 0)return;
+        Player2.vy += -speed / 2;
     }
     if (keymap[KeyDown] == true)
     {
-        Player2.vy = speed;
+        if(Player2.y == innerHeight - Player2.height)return;
+        Player2.vy += speed / 2;
     }
 }
 function P2Box()
 {
-    if (Player2.y <= 0)
-    Player2.y = 0
+    if (Player2.y < 0){
+        Player2.y = 0;
+        Player2.vy = 0;
+    }
 
-    if (Player2.y + Player2.height >= canvas.height)
-    Player2.y = canvas.height - Player2.height
+    if (Player2.y + Player2.height > canvas.height){
+        Player2.y = canvas.height - Player2.height;
+        Player2.vy = 0;
+    }
 
     if (Player2.x != canvas.width - Player2.width)
     Player2.x = canvas.width - Player2.width
@@ -191,11 +219,11 @@ function updateGame(t)
     BallBox()
     BallUpdate(t)
     P1Movement()
-    P1Box()
     Player1.update(t)
+    P1Box()
     P2Movement()
-    P2Box()
     Player2.update(t)
+    P2Box()
     // if (keymap[KeySpace])
     // ball.m = true;
 }

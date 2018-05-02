@@ -15,6 +15,7 @@ class Player {
   update(){
     this.x += this.vx;
     this.vx *= this.d;
+    if(!(this.y + this.vy < 0) || !((this.y + this.vy) + this.height > innerHeight))
     this.y += this.vy;
     this.vy *= this.d;
   }

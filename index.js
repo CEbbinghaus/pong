@@ -15,11 +15,11 @@ var dt;
 
 var speed = 15;
 
-var Player1 = new Player();
+var Player1 = new Player(innerWidth / 80, innerHeight / 5);
 Player1.d = 0.5
-var Player2 = new Player();
+var Player2 = new Player(innerWidth / 80, innerHeight / 5);
 Player2.d = 0.5
-var ball = new Ball(innerWidth / 2, innerHeight / 2);
+var ball = new Ball(innerWidth / 2, innerHeight / 2, innerHeight / 70);
 
 var keymap = {};
 var Keyup = 38;
@@ -111,10 +111,10 @@ function ResetBall()
 function BallUpdate(dt){
     if(ball.isColliding(Player1) && ball.vx < 0){
         ball.vx = -ball.vx * 1.01
-        ball.vy += Player1.vy * 2
+        ball.vy += Player1.vy ** 2
     }else if(ball.isColliding(Player2) && ball.vx > 0){
         ball.vx = -ball.vx * 1.01;
-        ball.vy += Player2.vy * 2
+        ball.vy += Player2.vy ** 2
     }
     ball.update(dt)
 }

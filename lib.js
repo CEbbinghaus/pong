@@ -1,0 +1,1 @@
+TouchList.prototype.forEach = function(f){for(let i in this){if(!isNaN(parseInt(i)))f(this[i])}};

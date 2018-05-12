@@ -4,11 +4,102 @@ var context = canvas.getContext("2d");
 window.addEventListener("keydown", function(evt) {onKeyDown(event);}, false); 
 window.addEventListener("keyup", function(evt) {onKeyUp(event);}, false);
 canvas.addEventListener("touchmove", onTouch)
-window.addEventListener("resize", () => {canvas.width = innerWidth; canvas.height = innerHeight;})
+window.addEventListener("resize", resize)
 window.addEventListener("DOMContentLoaded", function(evt) {onLoad(evt);}, false);
+//////////////////////////////////////////////////////////////////////
+class Ball{
+  constructor(x = innerWidth / 2, y = innerHeight / 2, r = innerHeight / 50){
+    this.m = false;
+    this.x = x;
+    this.y = y;
+    this.r = r;
+    this.vx = 0;
+    this.vy = 0;
+  }
+
+  draw(ctx){
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+    ctx.shadowColor = "#0003"
+    ctx.shadowBlur = 30;
+    ctx.shadowOffsetX = 10;
+    ctx.shadowOffsetY = 10;
+    ctx.fill();
+  }
+
+  update(dt){
+    if(!this.m)return;
+    this.x += this.vx * dt;
+    this.y += this.vy * dt;
+  }
+
+  isColliding(rect){
+    var distX = Math.abs(this.x - rect.x-rect.width/2);
+    var distY = Math.abs(this.y - rect.y-rect.height/2);
+
+    if (distX > (rect.width/2 + this.r)) { return false; }
+    if (distY > (rect.height/2 + this.r)) { return false; }
+
+    if (distX <= (rect.width/2)) { return true; } 
+    if (distY <= (rect.height/2)) { return true; }
+
+    var dx=distX-rect.width/2;
+    var dy=distY-rect.height/2;
+    return (dx*dx+dy*dy<=(this.r*this.r));
+  }
+
+  reset(){
+    this.vx = this.vy = 0;
+    this.x = innerWidth / 2;
+    this.y = innerHeight / 2;
+  }
+
+  bind(){
+    if(this.y - this.r < 0 && this.vy < 0)this.vy = -this.vy;
+    if(this.y + this.r > innerHeight && this.vy > 0)this.vy = -this.vy;
+  }
+}
+
+class Player {
+  constructor(o){
+    this.x = (o ? o.x : false) || 0;
+    this.y = (o ? o.y : false) || 0;
+    this.height = (o.height < 50 ? 50 : o.height) || 50;
+    this.width = (o.width < 10 ? 10 : o.width) || 10;
+    this.vx = o.vx || 0;
+    this.vy = o.vy || 0;
+    this.d = o.d || 0.4;
+    this.ai = o.ai || false;
+  }
+  draw(ctx){
+    ctx.fillRect(this.x, this.y, this.width, this.height)
+  }
+
+  update(ball){
+    if(!this.ai){
+        if(!(this.y + this.vy < 0) || !((this.y + this.vy) + this.height > innerHeight))
+        this.y += this.vy;
+        this.vy *= this.d;
+    }else{
+        this.vy = (ball.y - (this.height / 2)) / 100;
+    }
+  }
+  bind(s){
+    if(this.y < 0)this.y = 0;
+    if(this.y + this.height > innerHeight)this.y = innerHeight - this.height;
+    switch(s){
+        case "l": 
+            if(this.x < 0)this.x = 0;
+        break;
+        case "r":
+            if(this.x + this.width > innerWidth)this.x = innerWidth - this.width;
+        break;
+        default:
+            new Error("Side needs to be specified")
+    }
+  }
+}
 ///////////////////////////////////////////////////////////////////////////////////
-var height = canvas.height = innerHeight;
-var width = canvas.width = innerWidth;
 
 var prevTime
 var dt;
@@ -16,10 +107,8 @@ var dt;
 var speed = 15;
 
 var Player1 = new Player(innerWidth / 80, innerHeight / 5);
-Player1.d = 0.5
 var Player2 = new Player(innerWidth / 80, innerHeight / 5);
-Player2.d = 0.5
-var ball = new Ball(innerWidth / 2, innerHeight / 2, innerHeight / 70);
+var ball = new Ball(innerWidth / 2, innerHeight / 2, innerHeight / 50);
 
 var keymap = {};
 var Keyup = 38;
@@ -39,6 +128,8 @@ var gameState =
 var currentState = gameState.Game;
 
 var score = {Player1: 0, Player2: 0, lastwinner: Player1}
+
+//const g = new singlePlayer();
 //////////////////////////////////////////////////////////////////////
 function updateDT(t)
 {
@@ -50,8 +141,16 @@ function updateDT(t)
 //------------------------------------------------------------------
 function onLoad(event)
 {
+    resize()
     requestAnimationFrame(tick)
     setTimeout(ResetBall, 1000)
+}
+function resize(event){
+    canvas.width = innerWidth;
+    canvas.height = innerHeight;
+    ball.r = innerHeight / 50;
+    Player1.width = Player2.width =  innerWidth / 80;
+    Player1.height = Player2.height= innerHeight / 5;
 }
 //------------------------------------------------------------------
 function onKeyDown(event)
@@ -75,11 +174,6 @@ function onTouch(event){
     let r = a.filter(v => v.clientX > innerWidth - innerWidth / 8)
     if(l.length)Player1.vy = (l[0].clientY - Player1.height / 2) - Player1.y;
     if(r.length)Player2.vy = (r[0].clientY - Player2.height / 2) - Player2.y;
-}
-//-------------------------------------------------------------------Collisions
-function IsColliding(p1, p2)
-{
-    return p1.x > p2.x && p1.y > p2.y && p1.x < p2.x + p2.width && p2.y > p2.y + p2.height;
 }
 //--------------------------------------------------------------------Ball
 function CenterBall()
@@ -111,10 +205,10 @@ function ResetBall()
 function BallUpdate(dt){
     if(ball.isColliding(Player1) && ball.vx < 0){
         ball.vx = -ball.vx * 1.01
-        ball.vy += Player1.vy ** 2
+        ball.vy += Player1.vy*4;
     }else if(ball.isColliding(Player2) && ball.vx > 0){
         ball.vx = -ball.vx * 1.01;
-        ball.vy += Player2.vy ** 2
+        ball.vy += Player2.vy*4;
     }
     ball.update(dt)
 }
@@ -207,11 +301,11 @@ function P2Box()
 //----------------------------------------
 function updateMenu()
 {
-
+    //g.update()
 }
 function drawMenu()
 {
-
+    //g.draw()
 }
 //--------------------------------------------
 function updateGame(t)
@@ -220,9 +314,14 @@ function updateGame(t)
     BallUpdate(t)
     P1Movement()
     Player1.update(t)
+    // if(ball.x < innerWidth / 2)
+    // Player1.vy = ((ball.y - Player1.y) - (Player1.height / 2)) / 10;
     P1Box()
     P2Movement()
     Player2.update(t)
+    if(ball.x > innerWidth / 2)
+    Player2.vy = ((ball.y - Player2.y) - (Player2.height / 2)) / 10;
+
     P2Box()
     // if (keymap[KeySpace])
     // ball.m = true;
@@ -238,7 +337,7 @@ function drawGame()
     context.fillText(score.Player1 + ":" + score.Player2, canvas.width/2 - 60, 60);
 }
 ///////////////////////////////////////////////////////////////////////
-const tick = (t) => {
+function tick(t){
     let time = updateDT(t);
     if (currentState == gameState.Menu)
     {

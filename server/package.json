@@ -1,0 +1,17 @@
+{
+  "name": "pongserver",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "uuid": "^3.2.1",
+    "ws": "^5.1.1",
+    "webhook": "^0.0.2"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "CEbbinghaus",
+  "license": "ISC"
+}

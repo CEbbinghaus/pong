@@ -1,5 +1,10 @@
 let game;
-let m = new Menu({
+let Options = {
+  Fullscreen: () => {
+    toggleFullScreen();
+  }
+}
+let MainMenu = {
   Play: {
     Singleplayer: {
       Easy: () => {game = new singlePlayer(0.4); return true},
@@ -8,14 +13,25 @@ let m = new Menu({
     },
     Multiplayer: {
       Local: () => {game = new multiPlayer(); return true;},
-      Online: () => console.log("Online Multiplayer")
+       Online: () => {
+        game = new onlineGame();
+        return true;
+      }
     }
   },
-  Options: {
-    Fullscreen: () => {
-      toggleFullScreen();
-    }
+  Options: Options
+}
+
+let GameMenu = {
+  Resume: () => {
+    game.start();
+  },
+  Options: Options,
+  MainMenu: () => {
+    game = null;
+    m = new Menu(MainMenu);
   }
-  //Google: () => location.href = "http://www.google.com"
-})
+}
+
+let m = new Menu(MainMenu);
 m.draw();

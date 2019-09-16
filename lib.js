@@ -56,7 +56,7 @@ const trueType = v => {
 }
 
 Array.prototype.copy = function(){
-    return this.slice(0);
+    return Array.from(this);
 }
 
 const point = (p1, p2, p) => {
